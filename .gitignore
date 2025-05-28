@@ -1,0 +1,41 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+.history/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Paketler
+*.nupkg
+# Rider
+.idea/
+
+# Publish çıktısı
+publish/
+
+# Kişisel ayarlar
+*.swp
+*.tmp
+
+# Diğer
+*.vspscc
+*.vssscc
+_ReSharper*/
+
+# Test sonuçları
+TestResults/
+
+# Dotnet secrets
+secrets.json
