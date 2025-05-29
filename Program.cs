@@ -1,12 +1,15 @@
 using StockMarket;
 using StockMarket.Hubs;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
-builder.Services.AddSingleton<PriceGenerator>();
+builder.Services.AddDbContext<StockMarket.PriceDbContext>(options =>
+    options.UseInMemoryDatabase("PricesDb"));
+builder.Services.AddScoped<PriceGenerator>();
 
 var app = builder.Build();
 
@@ -29,6 +32,9 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
-app.Services.GetRequiredService<PriceGenerator>();
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<PriceGenerator>();
+}
 
 await app.RunAsync();
