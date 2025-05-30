@@ -1,0 +1,31 @@
+@page
+@model PricesModel
+@{
+    ViewData["Title"] = "Fiyat Listesi";
+}
+<div class="container mt-4">
+    <h2 class="mb-4">Fiyat Listesi</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Sembol</th>
+                <th>Güncel Fiyat</th>
+                <th>Son Güncelleme</th>
+                <th>Detay</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var price in Model.Prices)
+        {
+            <tr>
+                <td>@price.Symbol</td>
+                <td>@(price.History != null && price.History.Count > 0 ? price.History[price.History.Count - 1].Value.ToString() : "-")</td>
+                <td>@price.LastUpdated.ToString("g")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" href="/Prices/Detail?id=@price.Id">Detay</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

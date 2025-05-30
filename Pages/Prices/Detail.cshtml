@@ -1,0 +1,70 @@
+@page
+@model StockMarket.Pages.Prices.DetailModel
+@{
+    ViewData["Title"] = "Fiyat Geçmişi";
+    var history = Model.Price?.History.OrderBy(x => x.Timestamp).ToList() ?? new List<StockMarket.Models.PriceHistory>();
+    var labels = string.Join(",", history.Select(h => $"'{h.Timestamp:yyyy-MM-dd HH:mm}'"));
+    var data = string.Join(",", history.Select(h => h.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+}
+<div class="container mt-4">
+    <h2 class="mb-4">@Model.Price?.Symbol Fiyat Geçmişi</h2>
+    @if (Model.Price == null)
+    {
+        <div class="alert alert-danger">Fiyat bulunamadı.</div>
+    }
+    else if (!history.Any())
+    {
+        <div class="alert alert-warning">Fiyat geçmişi bulunamadı.</div>
+    }
+    else
+    {
+        <canvas id="priceHistoryChart" height="100"></canvas>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+        <script>
+            const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [@Html.Raw(labels)],
+                    datasets: [{
+                        label: 'Fiyat',
+                        data: [@Html.Raw(data)],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: true,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Fiyat Zaman Grafiği' }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Tarih' } },
+                        y: { title: { display: true, text: 'Fiyat' } }
+                    }
+                }
+            });
+
+            // SignalR ile gerçek zamanlı güncelleme
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/priceHub')
+                .build();
+            connection.start().then(() => {
+                connection.invoke('Subscribe', '@Model.Price.Symbol');
+            });
+            connection.on('ReceiveLivePriceUpdate', (symbol, price) => {
+                if(symbol === '@Model.Price.Symbol') {
+                    const now = new Date();
+                    const label = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+                    chart.data.labels.push(label);
+                    chart.data.datasets[0].data.push(price);
+                    chart.update();
+                }
+            });
+        </script>
+    }
+</div>

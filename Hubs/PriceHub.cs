@@ -46,6 +46,7 @@ namespace StockMarket.Hubs
                 Console.WriteLine($"Sending price update for {symbol} to user {kvp.Key}: {price}");
                 await hub.Clients.Client(kvp.Key).SendAsync("ReceivePriceUpdate", symbol, price);
             }
+            await hub.Clients.All.SendAsync("ReceiveLivePriceUpdate", symbol, price);
         }
     }
 }
